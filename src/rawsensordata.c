@@ -50,11 +50,6 @@ unsigned long long array_ts[array_size];
 
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
-typedef struct _uib_view1_control_context {
-	/* add your variables here */
-
-} uib_view1_control_context;
-
 // application data (context) that will be passed to functions when needed
 typedef struct appdata
 {
@@ -126,20 +121,6 @@ void update_sensor_current_val(float val, sensor_t type) {
 	}
 }
 
-unsigned long long get_fileSize(){
-	char fpath[256];
-	strcpy(fpath, app_get_data_path());
-	strcat(fpath, "ppg_data.csv");
-	FILE* fp = fopen(fpath, "r");
-	if(fp) {
-		unsigned long long filesize = ftell(fp);
-		fclose(fp);
-		return filesize;
-	}
-	return -1;
-}
-
-/* Define callback */
 void example_sensor_callback(sensor_h sensor, sensor_event_s *event, void *user_data)
 {
     /*
@@ -149,7 +130,6 @@ void example_sensor_callback(sensor_h sensor, sensor_event_s *event, void *user_
 
     sensor_type_e type;
     sensor_get_type(sensor, &type);
-    char *formatted_label = (char*)malloc(256 * sizeof(char));
     if (type == SENSOR_HRM) {
 		update_sensor_current_val(event->values[0], HEART_RATE);
     }
@@ -203,6 +183,7 @@ void stop_sensors();
 void pause_sensors(void *vc);
 
 void start_sensors(void *vc){
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
 	if(service_state == RUNNING)
 		return;
 
@@ -269,6 +250,7 @@ void start_sensors(void *vc){
 		start_sensor(sensor_type_Pres, vc);
 	}
 	service_state = RUNNING;
+//	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors set timer to 10s...");
 //	ecore_timer_add(10, pause_sensors, vc);
 }
 
@@ -285,7 +267,9 @@ void stop_sensors(){
 }
 
 void pause_sensors(void *vc){
-	stop_sensors(vc);
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
+	stop_sensors();
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors set timer to 10s...");
 	ecore_timer_add(10, start_sensors, vc);
 }
 
@@ -329,7 +313,7 @@ bool service_app_create(void *data)
 void service_app_terminate(void *data)
 {
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_terminate called...");
-	stop_sensors(data);
+	stop_sensors();
 }
 
 void service_app_control(app_control_h app_control, void *data)
@@ -340,7 +324,7 @@ void service_app_control(app_control_h app_control, void *data)
 	if ((app_control_get_caller(app_control, &caller_id) == APP_CONTROL_ERROR_NONE)
 		&& (app_control_get_extra_data(app_control, "service_action", &action_value) == APP_CONTROL_ERROR_NONE))
 	{
-		dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_control called...");
+		dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_control condition entered with caller id %s asking %s ...", caller_id, action_value);
 		if((caller_id != NULL) && (action_value != NULL)
 			&& (!strncmp(caller_id, LAUNCHER_APP_ID, 256))
 			&& (!strncmp(action_value,"stop", 256))){
@@ -348,7 +332,7 @@ void service_app_control(app_control_h app_control, void *data)
 			free(caller_id);
 			free(action_value);
 //			service_app_exit();
-			stop_sensors(data);
+			stop_sensors();
 			return;
 		}
 		else
@@ -392,9 +376,6 @@ int main(int argc, char* argv[])
 {
 	// we declare ad as a structure appdata_s defined earlier
 	appdata_s ad = {0,};
-	// we keep the template code below…
-	//(…)
-	// …and then modify the line below to pass an address of ad
     //char ad[50] = {0,};
 	service_app_lifecycle_callback_s event_callback;
 	app_event_handler_h handlers[5] = {NULL, };
