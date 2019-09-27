@@ -11,7 +11,7 @@
 //#include "sensor_params.h"
 #include <sensor.h>
 #include <device/power.h>
-#define LAUNCHER_APP_ID "org.example.ddrbtppg" // an ID of the UI application of our package
+#define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
 
 
 #define FONT_SIZE 20
@@ -331,8 +331,8 @@ void service_app_control(app_control_h app_control, void *data)
 			dlog_print(DLOG_INFO, LOG_TAG, "Stopping Service!");
 			free(caller_id);
 			free(action_value);
-//			service_app_exit();
-			stop_sensors();
+//			stop_sensors();
+			service_app_exit();
 			return;
 		}
 		else
