@@ -1,18 +1,27 @@
 #include <tizen.h>
-//#include <service_app.h>
 #include "rawsensordata.h"
 #include <stdlib.h>
+#include <Ecore.h>
 
-void start_sensors(void *vc);
+appdata_t appdata;
+
+
+
+Eina_Bool start_sensors(void *vc);
 void stop_sensors();
 
 
 bool service_app_create(void *data)
 {
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create called...");
+//	appdata = *(appdata_t*)data;
+	strncpy(appdata.userid, "subangkar", 31);
+	appdata.recording_duration=DATA_RECORDING_DURATION;
+	appdata.recording_interval=DATA_RECORDING_INTERVAL;
 
+	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...",appdata.userid, appdata.recording_duration, appdata.recording_interval);
 	start_sensors(data);
-
+	ecore_timer_add(appdata.recording_interval, start_sensors, data);
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting sensor service...");
 
 	return true;

@@ -61,7 +61,15 @@ sensor_listener_h listener[SENSOR_LAST+1];
 
 unsigned long long fsize=0;
 
+
+Ecore_Timer* running_timer=NULL, *pause_timer=NULL;
+
+//extern appdata_t appdata;
 // -------------------------- Status Variables End ----------------------------------------
+
+// -------------------------- Timer Functions Start ----------------------------------------
+
+// -------------------------- Timer Functions End ----------------------------------------
 
 void update_sensor_current_val(float val, sensor_t type) {
 
@@ -93,10 +101,10 @@ void update_sensor_current_val(float val, sensor_t type) {
 	if (fsize < 1 * 1024 * 1024 && (read_sensors == 0x0FFF)) {
 		struct sensor_values vals = all_sensor_current_vals;
 		fprintf(fp,
-				"%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f, %ld\n",
+				"%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%ld\n",
 				(int)vals.hr, (int)vals.ppg, vals.acc_x, vals.acc_y, vals.acc_z,
-				vals.gyr_x, vals.gyr_y, vals.gyr_z, vals.pres, vals.grav_x,
-				vals.grav_y, vals.grav_z, time(NULL));
+				vals.gyr_x, vals.gyr_y, vals.gyr_z, vals.pres,
+				vals.grav_x, vals.grav_y, vals.grav_z, time(NULL));
 		read_sensors = 0;
 	}
 }
@@ -158,18 +166,14 @@ void sensor_not_supported(const char* sensor_name){
 	service_app_exit();
 }
 
-void start_sensors(void *vc);
+Eina_Bool start_sensors(void *vc);
 void stop_sensors();
-void pause_sensors(void *vc);
+Eina_Bool pause_sensors(void *vc);
 
-void start_sensors(void *vc){
+Eina_Bool start_sensors(void *vc){
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
 	if(service_state == RUNNING)
-		return;
-
-	for (int i = 0; i <= SENSOR_LAST; i++){
-		listener[i] = -1;
-	}
+		return ECORE_CALLBACK_RENEW;
 
 	//PPG
 	bool supported_PPG = false;
@@ -230,27 +234,35 @@ void start_sensors(void *vc){
 		start_sensor(sensor_type_Pres, vc);
 	}
 	service_state = RUNNING;
-//	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors set timer to 10s...");
-//	ecore_timer_add(10, pause_sensors, vc);
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors set timer to 10s...");
+//	if(!running_timer)
+//		running_timer=ecore_timer_add(5, pause_sensors, vc);
+	if(!pause_timer)
+		pause_timer=ecore_timer_add(DATA_RECORDING_DURATION, pause_sensors, vc);
+	else
+		ecore_timer_thaw(pause_timer);
+	return ECORE_CALLBACK_RENEW;
 }
 
 void stop_sensors(){
 	if(service_state == STOPPED)
 		return;
 	for (int i = 0; i <= SENSOR_LAST; i++){
-		if(listener[i] != -1){
-			end_sensor(listener[i]);
-			listener[i] = -1;
-		}
+		end_sensor(listener[i]);
 	}
 	service_state = STOPPED;
 }
 
-void pause_sensors(void *vc){
+Eina_Bool pause_sensors(void *vc){
+	if(pause_timer){
+		ecore_timer_freeze(pause_timer);
+		ecore_timer_reset(pause_timer);
+	}
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
 	stop_sensors();
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors set timer to 10s...");
-	ecore_timer_add(10, start_sensors, vc);
+//	ecore_timer_add(10, start_sensors, vc);
+	return ECORE_CALLBACK_RENEW;
 }
 
 // ---------------------------- Sensor Utility Functions Definitions Start ------------------------------

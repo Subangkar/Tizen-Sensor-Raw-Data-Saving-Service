@@ -4,6 +4,7 @@
 #include <dlog.h>
 #include <service_app.h>
 #include <sensor.h>
+#include <stdint.h>
 
 #ifdef  LOG_TAG
 #undef  LOG_TAG
@@ -11,14 +12,23 @@
 #define LOG_TAG "X_rawsensordata"
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
+
+#define DATA_RECORDING_DURATION 60
+#define DATA_RECORDING_INTERVAL 300
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
 // application data (context) that will be passed to functions when needed
-typedef struct appdata
+typedef struct
 {
     sensor_h sensor; // sensor handle
     sensor_listener_h listener; // sensor listener handle
 } appdata_s;
+
+typedef struct appdata_t{
+	char userid[31];
+	uint16_t recording_duration;
+	uint16_t recording_interval;
+} appdata_t;
 
 
 typedef enum {
