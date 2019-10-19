@@ -1,0 +1,19 @@
+Two main components:
+Native App
+	Starts/Stops Service manually with input from user
+	Uploads immediately with input from user
+
+Native Service
+	Maintains Timer based readings
+	Two Timers are maintained: Data Read Starting Interval(60s) & Data Recording Interval(15s)
+	"Data Read Starting Interval" is started on launching of service and runs infinitely
+	"Data Recording Interval" is started at the time of starting of sensors reading and paused on stopping of sensors.
+	
+	So, Sensor values are recorded at first 15s of every 60s from the time service has started.
+	
+	File Uploading is done via polling when the sensors recording is just paused(i.e. on 15th second).
+	If uploading is succeeded the uploaded files are deleted.
+
+	Each recording i.e. 15s has separate csv files named after starting TIMESTAMP of that recording.return
+
+	Activity recognition from tizen manual did not work.
