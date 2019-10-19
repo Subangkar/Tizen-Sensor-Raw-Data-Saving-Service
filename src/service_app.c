@@ -6,10 +6,10 @@
 appdata_t appdata;
 
 
-
-Eina_Bool start_sensors(void *vc);
+void start_timed_sensors(void *data);
 void stop_sensors();
 
+void activity_recognition_start();
 
 bool service_app_create(void *data)
 {
@@ -19,10 +19,12 @@ bool service_app_create(void *data)
 	appdata.recording_duration=DATA_RECORDING_DURATION;
 	appdata.recording_interval=DATA_RECORDING_INTERVAL;
 
-	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...",appdata.userid, appdata.recording_duration, appdata.recording_interval);
-	start_sensors(data);
-	ecore_timer_add(appdata.recording_interval, start_sensors, data);
+	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...", appdata.userid, appdata.recording_duration, appdata.recording_interval);
+	start_timed_sensors(data);
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting sensor service...");
+
+	dlog_print(DLOG_INFO, LOG_TAG, "Starting activity recognition...");
+	activity_recognition_start();
 
 	return true;
 }

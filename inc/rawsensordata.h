@@ -13,8 +13,8 @@
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
 
-#define DATA_RECORDING_DURATION 60
-#define DATA_RECORDING_INTERVAL 300
+#define DATA_RECORDING_DURATION 30
+#define DATA_RECORDING_INTERVAL 90
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
 // application data (context) that will be passed to functions when needed
