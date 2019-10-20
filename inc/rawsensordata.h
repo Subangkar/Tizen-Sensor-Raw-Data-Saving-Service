@@ -15,6 +15,7 @@
 
 #define DATA_RECORDING_DURATION 30
 #define DATA_RECORDING_INTERVAL 90
+#define DATA_FILE_SIZE_AVG DATA_RECORDING_DURATION
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
 // application data (context) that will be passed to functions when needed

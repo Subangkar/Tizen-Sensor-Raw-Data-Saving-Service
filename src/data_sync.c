@@ -1,3 +1,6 @@
+#include <rawsensordata.h>
+
+
 #include <curl/curl.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -10,6 +13,8 @@
 #include <sys/types.h>
 
 #define SERVER_URL "http://192.168.0.103:8000/"
+#define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
+#define CURL_MAX_CONNECT_TIME 10L
 
 // returns 0 for success
 int uploadFile(const char *server_url, const char *filename, const char* filePath)
@@ -17,10 +22,8 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
   CURL *curl;
   CURLcode res;
   struct stat file_info;
-  curl_off_t speed_upload, total_time;
   FILE *fd;
 
-  // fd = fopen("debugit", "rb"); /* open file to upload */
   fd = fopen(filePath, "rb"); /* open file to upload */
   if (!fd)
     return 1; /* can't continue */
@@ -53,8 +56,14 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
     /* and give the size of the upload (optional) */
     curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
 
+    /* complete connection within 10 seconds */
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, CURL_MAX_CONNECT_TIME);
+
+    /* complete within 20 seconds */
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, CURL_MAX_TRANS_TIME);
+
     /* enable verbose for easier tracing */
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+//    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
     res = curl_easy_perform(curl);
     /* Check for errors */
@@ -67,8 +76,6 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
     {
       /* now extract transfer info */
       curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE , &response_code);
-//      curl_easy_getinfo(curl, CURLINFO_SPEED_UPLOAD_T, &speed_upload);
-//      dlog_print(DLOG_WARN, LOG_TAG, "Speed: %" CURL_FORMAT_CURL_OFF_T " bytes/sec during \n", speed_upload);
     }
     /* always cleanup */
     curl_easy_cleanup(curl);
