@@ -41,8 +41,8 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
     strcpy(server_path, server_url);
     strcat(server_path, filename);
 
-    dlog_print(DLOG_WARN, LOG_TAG, "Source      : %s\n", filePath);
-    dlog_print(DLOG_WARN, LOG_TAG, "Destination : %s\n", server_path);
+    dlog_print(DLOG_INFO, LOG_TAG, "Source      : %s\n", filePath);
+    dlog_print(DLOG_INFO, LOG_TAG, "Destination : %s\n", server_path);
 
     /* upload to this place */
     curl_easy_setopt(curl, CURLOPT_URL, server_path);
@@ -98,7 +98,7 @@ void trim(char * s) {
 // uploads files serially and deletes at once the file is uploaded
 int uploadAllFiles(const char* dir){
   char cmd[256];
-  sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*//", dir);
+  sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv'", dir);
 
   FILE *fileList = popen(cmd, "r");
 
@@ -116,7 +116,7 @@ int uploadAllFiles(const char* dir){
     strcpy(filePath+pathSize, filename);
     dlog_print(DLOG_WARN, LOG_TAG, "Uploading %s\n", filePath);
     if(uploadFile(SERVER_URL, filename, filePath)) return 0;
-    dlog_print(DLOG_WARN, LOG_TAG, "\"%s\" Uploaded\n", filename);
+    dlog_print(DLOG_INFO, LOG_TAG, "\"%s\" Uploaded\n", filename);
     sprintf(cmd, "rm %s", filePath);
     system(cmd);
   }

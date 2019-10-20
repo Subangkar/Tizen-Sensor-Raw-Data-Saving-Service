@@ -13,6 +13,9 @@
 
 #include <device/power.h>
 
+
+#include <activity_recognition.h>
+
 // --------------------------------------- External Functions ---------------------------------------
 int uploadAllFiles(const char* dir);
 // --------------------------------------------------------------------------------------------------
@@ -64,6 +67,10 @@ unsigned long long fsize = 0;
 Ecore_Timer* running_timer = NULL, *pause_timer = NULL, *upload_timer = NULL;
 
 //extern appdata_t appdata;
+extern activity_type_e current_activity;
+
+extern char activity_names[][2];
+
 // -------------------------- Status Variables End ----------------------------------------
 
 // -------------------------- Timer Functions Start ----------------------------------------
@@ -74,14 +81,19 @@ FILE* fp = NULL;
 
 FILE* create_new_data_file() {
 	char fpath[256];
-	sprintf(fpath, "%s_%s_%ld.csv", app_get_data_path(), "ppg_data",
-			time(NULL));
+	char cmd[256];
+	sprintf(cmd, "mkdir -p %scurrent/", app_get_data_path());
+	system(cmd);
+	sprintf(fpath, "%scurrent/_%s_%ld.csv", app_get_data_path(), "ppg_data", time(NULL));
 	return fopen(fpath, "w");
 }
 
 void close_current_data_file() {
 	fclose(fp);
 	fp = NULL;
+	char cmd[256];
+	sprintf(cmd, "mv %scurrent/* %s", app_get_data_path(), app_get_data_path());
+	system(cmd);
 }
 
 void update_sensor_current_val(float val, sensor_t type) {
@@ -110,10 +122,10 @@ void update_sensor_current_val(float val, sensor_t type) {
 	if (fsize < 1 * 1024 * 1024 && (read_sensors == 0x0FFF)) {
 		struct sensor_values vals = all_sensor_current_vals;
 		fprintf(fp,
-				"%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%ld\n",
+				"%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%ld,%s\n",
 				(int) vals.hr, (int) vals.ppg, vals.acc_x, vals.acc_y,
 				vals.acc_z, vals.gyr_x, vals.gyr_y, vals.gyr_z, vals.pres,
-				vals.grav_x, vals.grav_y, vals.grav_z, time(NULL));
+				vals.grav_x, vals.grav_y, vals.grav_z, time(NULL), activity_names[current_activity]);
 		read_sensors = 0;
 	}
 }
@@ -180,6 +192,7 @@ void stop_sensors();
 Eina_Bool pause_sensors(void *vc);
 Eina_Bool upload_data(void *vc);
 
+// turn on  service_state
 Eina_Bool start_sensors(void *vc) {
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
 	if (service_state == RUNNING)
@@ -191,6 +204,7 @@ Eina_Bool start_sensors(void *vc) {
 		ecore_timer_reset(upload_timer);
 	}
 
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> starting sensors...");
 	//PPG
 	bool supported_PPG = false;
 	sensor_type_e sensor_type_PPG = SENSOR_HRM_LED_GREEN;
@@ -250,17 +264,20 @@ Eina_Bool start_sensors(void *vc) {
 		start_sensor(sensor_type_Pres, vc);
 	}
 	service_state = RUNNING;
-	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors set timer to 10s...");
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors will be called after %d...", DATA_RECORDING_DURATION);
 	if (!pause_timer)
 		pause_timer = ecore_timer_add(DATA_RECORDING_DURATION, pause_sensors, vc);
 	else
 		ecore_timer_thaw(pause_timer);
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors will be called after %d...", DATA_RECORDING_INTERVAL);
 	return ECORE_CALLBACK_RENEW;// renews running_timer
 }
 
+// turn off service_state
 void stop_sensors() {
 	if (service_state == STOPPED)
 		return;
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> stopping sensors...");
 	for (int i = 0; i <= SENSOR_LAST; i++) {
 		end_sensor(listener[i]);
 	}
@@ -268,11 +285,11 @@ void stop_sensors() {
 }
 
 Eina_Bool pause_sensors(void *vc) {
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
 	if (pause_timer) {
 		ecore_timer_freeze(pause_timer);
 		ecore_timer_reset(pause_timer);
 	}
-	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
 	stop_sensors();
 	close_current_data_file();
 
@@ -297,10 +314,10 @@ Eina_Bool upload_data(void *vc){
 
 
 void start_timed_sensors(void *data) {
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_timed_sensors called...");
 	start_sensors(data);
 	if (!running_timer)
-		running_timer = ecore_timer_add(DATA_RECORDING_INTERVAL, start_sensors,
-				data);
+		running_timer = ecore_timer_add(DATA_RECORDING_INTERVAL, start_sensors,	data);
 	else {
 		ecore_timer_reset(running_timer);
 	}
@@ -321,8 +338,7 @@ void start_sensor(sensor_type_e sensor_type, void *vc) {
 	sensor_h sensor;
 	sensor_get_default_sensor(sensor_type, &sensor);
 	sensor_create_listener(sensor, &listener[sensor_type]);
-	sensor_listener_set_event_cb(listener[sensor_type], 1000 / SENSOR_FREQ,
-			example_sensor_callback, vc); //25Hz
+	sensor_listener_set_event_cb(listener[sensor_type], 1000 / SENSOR_FREQ,	example_sensor_callback, vc); //25Hz
 	sensor_listener_set_option(listener[sensor_type], SENSOR_OPTION_ALWAYS_ON);
 	sensor_listener_start(listener[sensor_type]);
 }
