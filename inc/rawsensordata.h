@@ -9,6 +9,7 @@
 #ifdef  LOG_TAG
 #undef  LOG_TAG
 #endif
+#define DEBUG_ON
 #define LOG_TAG "X_rawsensordata"
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package

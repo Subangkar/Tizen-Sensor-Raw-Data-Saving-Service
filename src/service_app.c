@@ -13,17 +13,25 @@ void activity_recognition_start();
 
 bool service_app_create(void *data)
 {
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create called...");
+#endif
 //	appdata = *(appdata_t*)data;
 	strncpy(appdata.userid, "subangkar", 31);
 	appdata.recording_duration=DATA_RECORDING_DURATION;
 	appdata.recording_interval=DATA_RECORDING_INTERVAL;
 
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...", appdata.userid, appdata.recording_duration, appdata.recording_interval);
+#endif
 	start_timed_sensors(data);
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting sensor service...");
+#endif
 
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting activity recognition...");
+#endif
 	activity_recognition_start();
 
 	return true;
@@ -31,23 +39,31 @@ bool service_app_create(void *data)
 
 void service_app_terminate(void *data)
 {
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_terminate called...");
+#endif
 	stop_sensors();
 }
 
 void service_app_control(app_control_h app_control, void *data)
 {
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_control called...");
+#endif
 	char *caller_id = NULL, *action_value = NULL;
 
 	if ((app_control_get_caller(app_control, &caller_id) == APP_CONTROL_ERROR_NONE)
 		&& (app_control_get_extra_data(app_control, "service_action", &action_value) == APP_CONTROL_ERROR_NONE))
 	{
+#ifdef DEBUG_ON
 		dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_control condition entered with caller id %s asking %s ...", caller_id, action_value);
+#endif
 		if((caller_id != NULL) && (action_value != NULL)
 			&& (!strncmp(caller_id, LAUNCHER_APP_ID, 256))
 			&& (!strncmp(action_value,"stop", 256))){
+#ifdef DEBUG_ON
 			dlog_print(DLOG_INFO, LOG_TAG, "Stopping Service!");
+#endif
 			free(caller_id);
 			free(action_value);
 //			stop_sensors();
@@ -56,7 +72,9 @@ void service_app_control(app_control_h app_control, void *data)
 		}
 		else
 		{
+#ifdef DEBUG_ON
 			dlog_print(DLOG_INFO, LOG_TAG, "Unsupported action! Doing nothing...");
+#endif
 			free(caller_id);
 			free(action_value);
 			caller_id = NULL;

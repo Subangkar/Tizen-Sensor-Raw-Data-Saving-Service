@@ -185,8 +185,9 @@ void sensor_not_supported(const char* sensor_name) {
 	fprintf(fp, "%s is not available: %s \n", sensor_name, asctime(timeinfo));
 	fclose(fp);
 
-	dlog_print(DLOG_ERROR, LOG_TAG,
-			"%s not supported! Service is useless, exiting...", sensor_name);
+#ifdef DEBUG_ON
+	dlog_print(DLOG_ERROR, LOG_TAG, "%s not supported! Service is useless, exiting...", sensor_name);
+#endif
 	service_app_exit();
 }
 
@@ -197,7 +198,9 @@ Eina_Bool upload_data(void *vc);
 
 // turn on  service_state
 Eina_Bool start_sensors(void *vc) {
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
+#endif
 	if (service_state == RUNNING)
 		return ECORE_CALLBACK_RENEW;
 
@@ -212,7 +215,9 @@ Eina_Bool start_sensors(void *vc) {
 		ecore_timer_reset(pause_timer);
 	}
 
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> starting sensors...");
+#endif
 	//PPG
 	bool supported_PPG = false;
 	sensor_type_e sensor_type_PPG = SENSOR_HRM_LED_GREEN;
@@ -272,12 +277,16 @@ Eina_Bool start_sensors(void *vc) {
 		start_sensor(sensor_type_Pres, vc);
 	}
 	service_state = RUNNING;
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors will be called after %d...", DATA_RECORDING_DURATION);
+#endif
 	if (!pause_timer)
 		pause_timer = ecore_timer_add(DATA_RECORDING_DURATION, pause_sensors, vc);
 //	else
 //		ecore_timer_thaw(pause_timer);
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors will be called after %d...", DATA_RECORDING_INTERVAL);
+#endif
 	return ECORE_CALLBACK_RENEW;// renews running_timer
 }
 
@@ -285,7 +294,9 @@ Eina_Bool start_sensors(void *vc) {
 void stop_sensors() {
 	if (service_state == STOPPED)
 		return;
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> stopping sensors...");
+#endif
 	for (int i = 0; i <= SENSOR_LAST; i++) {
 		end_sensor(listener[i]);
 	}
@@ -293,7 +304,9 @@ void stop_sensors() {
 }
 
 Eina_Bool pause_sensors(void *vc) {
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
+#endif
 //	if (pause_timer) {
 //		ecore_timer_freeze(pause_timer);
 //		ecore_timer_reset(pause_timer);
@@ -315,7 +328,9 @@ Eina_Bool upload_data(void *vc){
 //		ecore_timer_freeze(upload_timer);
 //		ecore_timer_reset(upload_timer);
 //	}
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_data called...");
+#endif
 	// a significant delay is introduced here if no internet connection available
 	uploadAllFiles(app_get_data_path());
 	upload_timer=NULL;
@@ -325,7 +340,9 @@ Eina_Bool upload_data(void *vc){
 
 
 void start_timed_sensors(void *data) {
+#ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_timed_sensors called...");
+#endif
 	start_sensors(data);
 	if (!running_timer)
 		running_timer = ecore_timer_add(DATA_RECORDING_INTERVAL, start_sensors,	data);

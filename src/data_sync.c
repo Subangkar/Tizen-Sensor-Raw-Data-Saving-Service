@@ -9,7 +9,6 @@
 #include <dlog.h>
 #include <stdlib.h>
 
-#include <stdio.h>
 #include <sys/types.h>
 
 #define SERVER_URL "http://192.168.0.103:8000/"
@@ -41,8 +40,10 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
     strcpy(server_path, server_url);
     strcat(server_path, filename);
 
-    dlog_print(DLOG_INFO, LOG_TAG, "Source      : %s\n", filePath);
-    dlog_print(DLOG_INFO, LOG_TAG, "Destination : %s\n", server_path);
+#ifdef DEBUG_ON
+//    dlog_print(DLOG_INFO, LOG_TAG, "Source      : %s\n", filePath);
+//    dlog_print(DLOG_INFO, LOG_TAG, "Destination : %s\n", server_path);
+#endif
 
     /* upload to this place */
     curl_easy_setopt(curl, CURLOPT_URL, server_path);
@@ -69,7 +70,9 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
     /* Check for errors */
     if (res != CURLE_OK)
     {
+#ifdef DEBUG_ON
       dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
       return 1;
     }
     else
@@ -114,12 +117,16 @@ int uploadAllFiles(const char* dir){
   {
     trim(filename);
     strcpy(filePath+pathSize, filename);
+#ifdef DEBUG_ON
     dlog_print(DLOG_WARN, LOG_TAG, "Uploading %s\n", filePath);
+#endif
     if(uploadFile(SERVER_URL, filename, filePath)) {
     	pclose(fileList);
     	return 0;
     }
+#ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "\"%s\" Uploaded\n", filename);
+#endif
     sprintf(cmd, "rm %s", filePath);
     system(cmd);
   }

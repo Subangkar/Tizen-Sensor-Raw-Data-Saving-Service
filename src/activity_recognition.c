@@ -21,7 +21,9 @@ activity_callback(activity_type_e activity, const activity_data_h data,
                           double timestamp, activity_error_e error, void *user_data);
 
 void activity_recognition_start(){
+#ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> activity_recognition_start called...");
+#endif
 	activity_create(&handles[ACTIVITY_STATIONARY]);
 	activity_start_recognition(handles[ACTIVITY_STATIONARY], ACTIVITY_STATIONARY, activity_callback, NULL);
 	activity_create(&handles[ACTIVITY_WALK]);
@@ -36,20 +38,24 @@ void
 activity_callback(activity_type_e activity, const activity_data_h data,
                           double timestamp, activity_error_e error, void *user_data)
 {
+#ifdef DEBUG_ON
    dlog_print(DLOG_INFO, LOG_TAG, ">>> activity_callback called...");
+#endif
    if (error != ACTIVITY_ERROR_NONE) {
 	   return;
    }
 
    int result;
    activity_accuracy_e accuracy;
-
    result = activity_get_accuracy(data, &accuracy);
+#ifdef DEBUG_ON
    dlog_print(DLOG_INFO, LOG_TAG, ">>> activity detected with accuracy: %d...", accuracy);
+#endif
 
    if (accuracy != ACTIVITY_ACCURACY_LOW && activity != current_activity) {
 #ifdef DEBUG_ON
 	   dlog_print(DLOG_WARN, LOG_TAG, ">>> activity changed...");
+#endif
 	   current_activity=activity;
 	   start_timed_sensors(user_data);
    }
