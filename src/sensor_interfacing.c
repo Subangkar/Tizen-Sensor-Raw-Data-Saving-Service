@@ -77,14 +77,15 @@ extern char activity_names[][2];
 
 // -------------------------- Timer Functions End ----------------------------------------
 
+// -------------------------- File Utils Functions Start ----------------------------------------
 FILE* fp = NULL;
 
 FILE* create_new_data_file() {
 	char fpath[256];
 	char cmd[256];
-	sprintf(cmd, "mkdir -p %scurrent/", app_get_data_path());
+	sprintf(cmd, "mkdir -p %s%s/", app_get_data_path(), "current");
 	system(cmd);
-	sprintf(fpath, "%scurrent/_%s_%ld.csv", app_get_data_path(), "ppg_data", time(NULL));
+	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", "ppg_data", time(NULL));
 	return fopen(fpath, "w");
 }
 
@@ -92,9 +93,11 @@ void close_current_data_file() {
 	fclose(fp);
 	fp = NULL;
 	char cmd[256];
-	sprintf(cmd, "mv %scurrent/* %s", app_get_data_path(), app_get_data_path());
+	sprintf(cmd, "mv %s%s/* %s", app_get_data_path(), "current", app_get_data_path());
 	system(cmd);
 }
+// -------------------------- File Utils Functions End ------------------------------------------
+
 
 void update_sensor_current_val(float val, sensor_t type) {
 
@@ -203,6 +206,11 @@ Eina_Bool start_sensors(void *vc) {
 		ecore_timer_freeze(upload_timer);
 		ecore_timer_reset(upload_timer);
 	}
+	// reset/postpone if any upload is scheduled
+	if (pause_timer) {
+		ecore_timer_freeze(pause_timer);
+		ecore_timer_reset(pause_timer);
+	}
 
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> starting sensors...");
 	//PPG
@@ -267,8 +275,8 @@ Eina_Bool start_sensors(void *vc) {
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors will be called after %d...", DATA_RECORDING_DURATION);
 	if (!pause_timer)
 		pause_timer = ecore_timer_add(DATA_RECORDING_DURATION, pause_sensors, vc);
-	else
-		ecore_timer_thaw(pause_timer);
+//	else
+//		ecore_timer_thaw(pause_timer);
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors will be called after %d...", DATA_RECORDING_INTERVAL);
 	return ECORE_CALLBACK_RENEW;// renews running_timer
 }
@@ -286,17 +294,20 @@ void stop_sensors() {
 
 Eina_Bool pause_sensors(void *vc) {
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
-	if (pause_timer) {
-		ecore_timer_freeze(pause_timer);
-		ecore_timer_reset(pause_timer);
-	}
+//	if (pause_timer) {
+//		ecore_timer_freeze(pause_timer);
+//		ecore_timer_reset(pause_timer);
+//	}
 	stop_sensors();
 	close_current_data_file();
 
+	upload_data(vc);
 	// call upload_data after DATA_UPLOAD_START_DELAY and cancel cb so that it's not called periodically
-	if (!upload_timer)
-		upload_timer = ecore_timer_add(DATA_UPLOAD_START_DELAY, upload_data, vc);
-	return ECORE_CALLBACK_RENEW;// renews pause_timer
+//	if (!upload_timer)
+//		upload_timer = ecore_timer_add(DATA_UPLOAD_START_DELAY, upload_data, vc);
+//	return ECORE_CALLBACK_RENEW;// renews pause_timer
+	pause_timer=NULL;
+	return ECORE_CALLBACK_CANCEL;
 }
 
 Eina_Bool upload_data(void *vc){

@@ -115,10 +115,14 @@ int uploadAllFiles(const char* dir){
     trim(filename);
     strcpy(filePath+pathSize, filename);
     dlog_print(DLOG_WARN, LOG_TAG, "Uploading %s\n", filePath);
-    if(uploadFile(SERVER_URL, filename, filePath)) return 0;
+    if(uploadFile(SERVER_URL, filename, filePath)) {
+    	pclose(fileList);
+    	return 0;
+    }
     dlog_print(DLOG_INFO, LOG_TAG, "\"%s\" Uploaded\n", filename);
     sprintf(cmd, "rm %s", filePath);
     system(cmd);
   }
-  return 0;
+  pclose(fileList);
+  return 1;
 }

@@ -45,9 +45,10 @@ activity_callback(activity_type_e activity, const activity_data_h data,
    activity_accuracy_e accuracy;
 
    result = activity_get_accuracy(data, &accuracy);
+   dlog_print(DLOG_INFO, LOG_TAG, ">>> activity detected with accuracy: %d...", accuracy);
 
-//   if (accuracy != ACTIVITY_ACCURACY_LOW && activity != current_activity) {
-   if (activity != current_activity) {
+   if (accuracy != ACTIVITY_ACCURACY_LOW && activity != current_activity) {
+#ifdef DEBUG_ON
 	   dlog_print(DLOG_WARN, LOG_TAG, ">>> activity changed...");
 	   current_activity=activity;
 	   start_timed_sensors(user_data);
