@@ -17,8 +17,8 @@
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
 
-#define DATA_RECORDING_DURATION 30
-#define DATA_RECORDING_INTERVAL 90
+#define DATA_RECORDING_DURATION (1*60)
+#define DATA_RECORDING_INTERVAL (5*60)
 #define DATA_FILE_SIZE_AVG DATA_RECORDING_DURATION
 // -------------------------- Data Type Definitions Start ----------------------------------------
 

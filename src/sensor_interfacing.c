@@ -24,37 +24,10 @@ int uploadAllFiles(const char* dir);
 
 #define DATA_UPLOAD_START_DELAY 5
 
-#define FONT_SIZE 20
 #define SENSOR_FREQ 10
-char time_file[256];
-bool flag = false; //To check if the data is recorded
 
-float check_count_error_HRM = 0;
-float check_count_HRM = 0;
 float checking_time = 3; //Checking time duration in seconds
 float recording_time = 60; //Recording time duration in seconds
-
-int pointer_PPG = 0;
-int pointer_HRM = 0;
-int pointer_ACC = 0;
-int pointer_GRA = 0;
-int pointer_GYR = 0;
-int pointer_PRE = 0;
-
-float array_PPG[array_size];
-float array_HRM[array_size];
-float array_ACCX[array_size];
-float array_ACCY[array_size];
-float array_ACCZ[array_size];
-float array_GRAX[array_size];
-float array_GRAY[array_size];
-float array_GRAZ[array_size];
-float array_GYRX[array_size];
-float array_GYRY[array_size];
-float array_GYRZ[array_size];
-float array_PRES[array_size];
-
-unsigned long long array_ts[array_size];
 
 // -------------------------- Status Variables Start ----------------------------------------
 
@@ -64,7 +37,7 @@ sensor_listener_h listener[SENSOR_LAST + 1];
 
 unsigned long long fsize = 0;
 
-Ecore_Timer* running_timer = NULL, *pause_timer = NULL, *upload_timer = NULL;
+Ecore_Timer* running_timer = NULL, *pause_timer = NULL;
 
 //extern appdata_t appdata;
 extern activity_type_e current_activity;
@@ -198,20 +171,12 @@ Eina_Bool start_sensors(void *vc) {
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
 #endif
 	if (service_state == RUNNING)
-//		return ECORE_CALLBACK_RENEW;
 		return ECORE_CALLBACK_PASS_ON;
 
 	// reset/postpone if any upload is scheduled
-	if (upload_timer) {
-		ecore_timer_freeze(upload_timer);
-		ecore_timer_reset(upload_timer);
-	}
-	// reset/postpone if any upload is scheduled
 	if (pause_timer) {
-		ecore_timer_freeze(pause_timer);
-		ecore_timer_reset(pause_timer);
-//		ecore_timer_del(pause_timer);
-//		pause_timer = NULL;
+		ecore_timer_del(pause_timer);
+		pause_timer = NULL;
 	}
 
 #ifdef DEBUG_ON
@@ -281,8 +246,6 @@ Eina_Bool start_sensors(void *vc) {
 #endif
 	if (!pause_timer)
 		pause_timer = ecore_timer_add(DATA_RECORDING_DURATION, pause_sensors, vc);
-	else
-		ecore_timer_thaw(pause_timer);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors will be called after %d...", DATA_RECORDING_INTERVAL);
 #endif
@@ -306,18 +269,11 @@ Eina_Bool pause_sensors(void *vc) {
 #ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> pause_sensors called...");
 #endif
-//	if (pause_timer) {
-//		ecore_timer_freeze(pause_timer);
-//		ecore_timer_reset(pause_timer);
-//	}
 	stop_sensors();
 	close_current_data_file();
 
 	upload_data(vc);
-	// call upload_data after DATA_UPLOAD_START_DELAY and cancel cb so that it's not called periodically
-//	if (!upload_timer)
-//		upload_timer = ecore_timer_add(DATA_UPLOAD_START_DELAY, upload_data, vc);
-//	return ECORE_CALLBACK_RENEW;// renews pause_timer
+
 	pause_timer=NULL;
 	return ECORE_CALLBACK_CANCEL;
 }
@@ -328,7 +284,6 @@ Eina_Bool upload_data(void *vc){
 #endif
 	// a significant delay is introduced here if no internet connection available
 	uploadAllFiles(app_get_data_path());
-	upload_timer=NULL;
 	return ECORE_CALLBACK_CANCEL;
 }
 
