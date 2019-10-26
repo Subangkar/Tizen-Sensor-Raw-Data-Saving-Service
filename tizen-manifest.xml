@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.1" package="org.example.rawsensordata" version="1.0.0">
-    <profile name="wearable" />
-    <service-application appid="org.example.rawsensordata" exec="rawsensordata" type="capp" 
-    multiple="false" taskmanage="false" nodisplay="true" auto-restart="true" on-boot="true">
-        <icon>rawsensordata.png</icon>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="org.example.rawsensordata" version="1.0.0">
+    <profile name="wearable"/>
+    <service-application appid="org.example.rawsensordata" auto-restart="true" exec="rawsensordata" multiple="false" nodisplay="true" on-boot="true" taskmanage="false" type="capp">
         <label>rawsensordata</label>
-	</service-application>
+        <icon>rawsensordata.png</icon>
+        <metadata key="http://tizen.org/metadata/background-category/background-network"/>
+        <metadata key="http://tizen.org/metadata/background-category/sensor"/>
+        <metadata key="http://tizen.org/metadata/background-category/location"/>
+    </service-application>
 </manifest>

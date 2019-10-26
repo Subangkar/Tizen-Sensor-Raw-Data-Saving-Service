@@ -6,14 +6,14 @@
 #include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
-#include <dlog.h>
 #include <stdlib.h>
 
 #include <sys/types.h>
 
-#define SERVER_URL "http://192.168.0.103:8000/"
+
+#define SERVER_URL "http://192.168.0.103:8000/data/"
 #define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
-#define CURL_MAX_CONNECT_TIME 10L
+#define CURL_MAX_CONNECT_TIME 5L
 
 // returns 0 for success
 int uploadFile(const char *server_url, const char *filename, const char* filePath)

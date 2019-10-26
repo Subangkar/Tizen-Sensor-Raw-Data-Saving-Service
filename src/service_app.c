@@ -2,6 +2,7 @@
 #include "rawsensordata.h"
 #include <stdlib.h>
 #include <Ecore.h>
+#include <device/power.h>
 
 appdata_t appdata;
 
@@ -9,10 +10,12 @@ appdata_t appdata;
 void start_timed_sensors(void *data);
 void stop_sensors();
 
-void activity_recognition_start();
+extern void activity_recognition_start();
+extern void activity_recognition_stop();
 
 bool service_app_create(void *data)
 {
+	device_power_request_lock(POWER_LOCK_CPU, 0);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create called...");
 #endif
@@ -25,10 +28,6 @@ bool service_app_create(void *data)
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...", appdata.userid, appdata.recording_duration, appdata.recording_interval);
 #endif
 	start_timed_sensors(data);
-#ifdef DEBUG_ON
-	dlog_print(DLOG_INFO, LOG_TAG, "Starting sensor service...");
-#endif
-
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting activity recognition...");
 #endif
@@ -43,6 +42,7 @@ void service_app_terminate(void *data)
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_terminate called...");
 #endif
 	stop_sensors();
+	activity_recognition_stop();
 }
 
 void service_app_control(app_control_h app_control, void *data)

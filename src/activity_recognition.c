@@ -52,7 +52,7 @@ activity_callback(activity_type_e activity, const activity_data_h data,
    dlog_print(DLOG_INFO, LOG_TAG, ">>> activity detected with accuracy: %d...", accuracy);
 #endif
 
-   if (accuracy != ACTIVITY_ACCURACY_LOW && activity != current_activity) {
+   if (current_activity==0 || (accuracy != ACTIVITY_ACCURACY_LOW && activity != current_activity)) {
 #ifdef DEBUG_ON
 	   dlog_print(DLOG_WARN, LOG_TAG, ">>> activity changed...");
 #endif

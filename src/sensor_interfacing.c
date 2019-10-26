@@ -181,10 +181,6 @@ void sensor_not_supported(const char* sensor_name) {
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 
-	FILE * fp = fopen("/opt/usr/media/Downloads/possible_errors.csv", "a");
-	fprintf(fp, "%s is not available: %s \n", sensor_name, asctime(timeinfo));
-	fclose(fp);
-
 #ifdef DEBUG_ON
 	dlog_print(DLOG_ERROR, LOG_TAG, "%s not supported! Service is useless, exiting...", sensor_name);
 #endif
@@ -202,7 +198,8 @@ Eina_Bool start_sensors(void *vc) {
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
 #endif
 	if (service_state == RUNNING)
-		return ECORE_CALLBACK_RENEW;
+//		return ECORE_CALLBACK_RENEW;
+		return ECORE_CALLBACK_PASS_ON;
 
 	// reset/postpone if any upload is scheduled
 	if (upload_timer) {
@@ -213,6 +210,8 @@ Eina_Bool start_sensors(void *vc) {
 	if (pause_timer) {
 		ecore_timer_freeze(pause_timer);
 		ecore_timer_reset(pause_timer);
+//		ecore_timer_del(pause_timer);
+//		pause_timer = NULL;
 	}
 
 #ifdef DEBUG_ON
@@ -282,8 +281,8 @@ Eina_Bool start_sensors(void *vc) {
 #endif
 	if (!pause_timer)
 		pause_timer = ecore_timer_add(DATA_RECORDING_DURATION, pause_sensors, vc);
-//	else
-//		ecore_timer_thaw(pause_timer);
+	else
+		ecore_timer_thaw(pause_timer);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors will be called after %d...", DATA_RECORDING_INTERVAL);
 #endif
@@ -324,10 +323,6 @@ Eina_Bool pause_sensors(void *vc) {
 }
 
 Eina_Bool upload_data(void *vc){
-//	if (upload_timer) {
-//		ecore_timer_freeze(upload_timer);
-//		ecore_timer_reset(upload_timer);
-//	}
 #ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_data called...");
 #endif

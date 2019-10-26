@@ -1,16 +1,19 @@
 #ifndef __rawsensordata_H__
 #define __rawsensordata_H__
 
-#include <dlog.h>
 #include <service_app.h>
 #include <sensor.h>
 #include <stdint.h>
 
+
 #ifdef  LOG_TAG
 #undef  LOG_TAG
 #endif
-#define DEBUG_ON
+//#define DEBUG_ON
+#ifdef DEBUG_ON
+#include <dlog.h>
 #define LOG_TAG "X_rawsensordata"
+#endif
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
 
