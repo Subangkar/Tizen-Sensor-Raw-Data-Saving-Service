@@ -170,8 +170,11 @@ Eina_Bool start_sensors(void *vc) {
 #ifdef DEBUG_ON
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> start_sensors called...");
 #endif
-	if (service_state == RUNNING)
+	if (service_state == RUNNING){
+		if (pause_timer)
+			ecore_timer_reset(pause_timer);
 		return ECORE_CALLBACK_PASS_ON;
+	}
 
 	// reset/postpone if any upload is scheduled
 	if (pause_timer) {
