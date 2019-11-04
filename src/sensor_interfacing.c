@@ -17,7 +17,7 @@
 #include <activity_recognition.h>
 
 // --------------------------------------- External Functions ---------------------------------------
-int uploadAllFiles(const char* dir);
+//int uploadAllFiles(const char* dir);
 // --------------------------------------------------------------------------------------------------
 
 #define array_size 10000
@@ -275,7 +275,7 @@ Eina_Bool pause_sensors(void *vc) {
 	stop_sensors();
 	close_current_data_file();
 
-	upload_data(vc);
+//	upload_data(vc);
 
 	pause_timer=NULL;
 	return ECORE_CALLBACK_CANCEL;
@@ -286,7 +286,7 @@ Eina_Bool upload_data(void *vc){
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_data called...");
 #endif
 	// a significant delay is introduced here if no internet connection available
-	uploadAllFiles(app_get_data_path());
+//	uploadAllFiles(app_get_data_path());
 	return ECORE_CALLBACK_CANCEL;
 }
 
