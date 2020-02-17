@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 
-#define SERVER_URL "http://192.168.0.103:8000/data/"
+#define SERVER_URL "http://hr-logger.herokuapp.com/data/" // "http://192.168.0.106:8000/data/"
 #define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
 #define CURL_MAX_CONNECT_TIME 5L
 

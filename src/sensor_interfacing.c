@@ -39,6 +39,8 @@ unsigned long long fsize = 0;
 
 Ecore_Timer* running_timer = NULL, *pause_timer = NULL;
 
+long long last_uploaded_timestamp=0;
+
 //extern appdata_t appdata;
 extern activity_type_e current_activity;
 
@@ -58,7 +60,10 @@ FILE* create_new_data_file() {
 	char cmd[256];
 	sprintf(cmd, "mkdir -p %s%s/", app_get_data_path(), "current");
 	system(cmd);
-	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", "ppg_data", time(NULL));
+	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", USER_ID, time(NULL));
+#ifdef DEBUG_ON
+	dlog_print(DLOG_INFO, LOG_TAG, ">>> new file opened %s...", fpath);
+#endif
 	return fopen(fpath, "w");
 }
 
@@ -68,6 +73,9 @@ void close_current_data_file() {
 	char cmd[256];
 	sprintf(cmd, "mv %s%s/* %s", app_get_data_path(), "current", app_get_data_path());
 	system(cmd);
+#ifdef DEBUG_ON
+	dlog_print(DLOG_INFO, LOG_TAG, ">>> current file closed...");
+#endif
 }
 // -------------------------- File Utils Functions End ------------------------------------------
 
@@ -286,7 +294,9 @@ Eina_Bool upload_data(void *vc){
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_data called...");
 #endif
 	// a significant delay is introduced here if no internet connection available
-	uploadAllFiles(app_get_data_path());
+	if(time(NULL)-last_uploaded_timestamp>=120*60 && uploadAllFiles(app_get_data_path()))	{
+		last_uploaded_timestamp=time(NULL);
+	}
 	return ECORE_CALLBACK_CANCEL;
 }
 
@@ -319,8 +329,10 @@ void start_sensor(sensor_type_e sensor_type, void *vc) {
 	sensor_h sensor;
 	sensor_get_default_sensor(sensor_type, &sensor);
 	sensor_create_listener(sensor, &listener[sensor_type]);
-	sensor_listener_set_event_cb(listener[sensor_type], 1000 / SENSOR_FREQ,	example_sensor_callback, vc); //25Hz
+	sensor_listener_set_interval(listener[sensor_type], 1000 / SENSOR_FREQ);
+	sensor_listener_set_event_cb(listener[sensor_type], 1000 / SENSOR_FREQ,	example_sensor_callback, vc); //10Hz
 	sensor_listener_set_option(listener[sensor_type], SENSOR_OPTION_ALWAYS_ON);
+//	sensor_listener_set_attribute_int(listener[sensor_type], SENSOR_ATTRIBUTE_PAUSE_POLICY, SENSOR_PAUSE_NONE);
 	sensor_listener_start(listener[sensor_type]);
 }
 // ---------------------------- Sensor Utility Functions Definitions End ------------------------------

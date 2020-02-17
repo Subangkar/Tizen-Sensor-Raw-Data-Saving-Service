@@ -27,12 +27,12 @@ bool service_app_create(void *data)
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...", appdata.userid, appdata.recording_duration, appdata.recording_interval);
 #endif
-	start_timed_sensors(data);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting activity recognition...");
 #endif
 	activity_recognition_start();
 
+	start_timed_sensors(data);
 	return true;
 }
 
