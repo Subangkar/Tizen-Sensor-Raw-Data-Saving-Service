@@ -39,7 +39,7 @@ unsigned long long fsize = 0;
 
 Ecore_Timer* running_timer = NULL, *pause_timer = NULL;
 
-long long last_uploaded_timestamp=0;
+time_t last_uploaded_timestamp=0;
 
 //extern appdata_t appdata;
 extern activity_type_e current_activity;
@@ -54,13 +54,18 @@ extern char activity_names[][2];
 
 // -------------------------- File Utils Functions Start ----------------------------------------
 FILE* fp = NULL;
-
+time_t timestamp_start=0;
+time_t timestamp_last_neg_hr=0;
+time_t timestamp_last_inv_hr=0;
+int last_hr=60;
 FILE* create_new_data_file() {
 	char fpath[256];
 	char cmd[256];
 	sprintf(cmd, "mkdir -p %s%s/", app_get_data_path(), "current");
 	system(cmd);
-	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", USER_ID, time(NULL));
+	timestamp_start=time(NULL);
+	timestamp_last_neg_hr=timestamp_last_inv_hr=timestamp_start;
+	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", USER_ID, timestamp_start);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> new file opened %s...", fpath);
 #endif
@@ -68,17 +73,21 @@ FILE* create_new_data_file() {
 }
 
 void close_current_data_file() {
+	if(!fp) return;
 	fclose(fp);
 	fp = NULL;
 	char cmd[256];
 	sprintf(cmd, "mv %s%s/* %s", app_get_data_path(), "current", app_get_data_path());
 	system(cmd);
+	timestamp_start=0;
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> current file closed...");
 #endif
 }
 // -------------------------- File Utils Functions End ------------------------------------------
 
+Eina_Bool pause_sensors(void *vc);
+void stop_sensors();
 
 void update_sensor_current_val(float val, sensor_t type) {
 
@@ -105,6 +114,32 @@ void update_sensor_current_val(float val, sensor_t type) {
 	// append only when file size < 1GB and all sensors data have been updated
 	if (fsize < 1 * 1024 * 1024 && (read_sensors == 0x0FFF)) {
 		struct sensor_values vals = all_sensor_current_vals;
+		time_t current_time = time(NULL);
+		if(vals.hr > VALID_HR) {
+			timestamp_last_inv_hr=current_time;
+			timestamp_last_neg_hr=current_time;
+		}
+
+		if(vals.hr > 0 && vals.hr < VALID_HR && last_hr>VALID_HR) {
+			timestamp_last_inv_hr=current_time;
+		}
+		if(vals.hr < 0 && last_hr>0) timestamp_last_neg_hr=current_time;
+
+		if(vals.hr > 0 && vals.hr < VALID_HR && last_hr<VALID_HR && current_time-timestamp_last_inv_hr>=30) {
+#ifdef DEBUG_ON
+			dlog_print(DLOG_INFO, LOG_TAG, "stopping early for inv HR after %ld", current_time-timestamp_last_inv_hr);
+#endif
+			stop_sensors();
+		}
+		if(vals.hr < 0 && last_hr<0 && last_hr<0 && current_time-timestamp_last_neg_hr>=20){
+#ifdef DEBUG_ON
+			dlog_print(DLOG_INFO, LOG_TAG, "stopping early for neg HR after %ld", current_time-timestamp_last_inv_hr);
+#endif
+			stop_sensors();
+		}
+
+		last_hr=(int)vals.hr;
+
 		fprintf(fp,
 				"%d,%d,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%ld,%s\n",
 				(int) vals.hr, (int) vals.ppg, vals.acc_x, vals.acc_y,
@@ -294,9 +329,13 @@ Eina_Bool upload_data(void *vc){
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_data called...");
 #endif
 	// a significant delay is introduced here if no internet connection available
-	if(time(NULL)-last_uploaded_timestamp>=120*60 && uploadAllFiles(app_get_data_path()))	{
+	if(time(NULL)-last_uploaded_timestamp>=WAIT_TIME_UPLOAD && uploadAllFiles(app_get_data_path()))	{
 		last_uploaded_timestamp=time(NULL);
 	}
+#ifdef DEBUG_ON
+	else
+		dlog_print(DLOG_WARN, LOG_TAG, ">>> skipping upload...");
+#endif
 	return ECORE_CALLBACK_CANCEL;
 }
 

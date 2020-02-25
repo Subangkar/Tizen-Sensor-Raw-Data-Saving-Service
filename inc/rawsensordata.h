@@ -17,11 +17,21 @@
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
 
-#define USER_ID "subangkar"
+#define DEVICE_TEST "device_test_id01_1"
+#define DEVICE1_ID "device1_r5akbonr70x"
+#define DEVICE2_ID "device2_r5ak104tvqe"
+#define DEVICE3_ID "device3_r5akcocc7gf"
+#define DEVICE4_ID "device4_r5ak104tvqe"
+#define DEVICE5_ID "device5_r5ak104tvqe"
 
-#define DATA_RECORDING_DURATION (5*60)
-#define DATA_RECORDING_INTERVAL (30*60)
+#define USER_ID DEVICE1_ID
+
+#define DATA_RECORDING_DURATION (3*60)
+#define DATA_RECORDING_INTERVAL (80*60)
 #define DATA_FILE_SIZE_AVG DATA_RECORDING_DURATION
+#define WAIT_TIME_UPLOAD (180*60)
+
+#define VALID_HR 30
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
 // application data (context) that will be passed to functions when needed

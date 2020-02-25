@@ -13,7 +13,7 @@
 
 #define SERVER_URL "http://hr-logger.herokuapp.com/data/" // "http://192.168.0.106:8000/data/"
 #define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
-#define CURL_MAX_CONNECT_TIME 5L
+#define CURL_MAX_CONNECT_TIME 20L
 
 // returns 0 for success
 int uploadFile(const char *server_url, const char *filename, const char* filePath)
