@@ -17,7 +17,7 @@
 #include <activity_recognition.h>
 
 // --------------------------------------- External Functions ---------------------------------------
-//int uploadAllFiles(const char* dir);
+int uploadAllFiles(const char* dir);
 // --------------------------------------------------------------------------------------------------
 
 #define array_size 10000
@@ -318,7 +318,7 @@ Eina_Bool pause_sensors(void *vc) {
 	stop_sensors();
 	close_current_data_file();
 
-//	upload_data(vc);
+	upload_data(vc);
 
 	pause_timer=NULL;
 	return ECORE_CALLBACK_CANCEL;
