@@ -101,6 +101,8 @@ void trim(char * s) {
 // uploads files serially and deletes at once the file is uploaded
 int uploadAllFiles(const char* dir){
   char cmd[256];
+  sprintf(cmd, "find %s -maxdepth 1 -type f -size -%dk -exec rm -r {} \\;", dir, INVALID_HR_MAX_DURATION+1);
+  system(cmd);
   sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv'", dir);
 
   FILE *fileList = popen(cmd, "r");

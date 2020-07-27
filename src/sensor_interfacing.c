@@ -125,13 +125,13 @@ void update_sensor_current_val(float val, sensor_t type) {
 		}
 		if(vals.hr < 0 && last_hr>0) timestamp_last_neg_hr=current_time;
 
-		if(vals.hr > 0 && vals.hr < VALID_HR && last_hr<VALID_HR && current_time-timestamp_last_inv_hr>=30) {
+		if(vals.hr > 0 && vals.hr < VALID_HR && last_hr<VALID_HR && current_time-timestamp_last_inv_hr>=INVALID_HR_MAX_DURATION) {
 #ifdef DEBUG_ON
 			dlog_print(DLOG_INFO, LOG_TAG, "stopping early for inv HR after %ld", current_time-timestamp_last_inv_hr);
 #endif
 			stop_sensors();
 		}
-		if(vals.hr < 0 && last_hr<0 && last_hr<0 && current_time-timestamp_last_neg_hr>=20){
+		if(vals.hr < 0 && last_hr<0 && last_hr<0 && current_time-timestamp_last_neg_hr>=NEG_HR_MAX_DURATION){
 #ifdef DEBUG_ON
 			dlog_print(DLOG_INFO, LOG_TAG, "stopping early for neg HR after %ld", current_time-timestamp_last_inv_hr);
 #endif

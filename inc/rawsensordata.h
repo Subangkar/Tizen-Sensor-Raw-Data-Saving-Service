@@ -32,6 +32,8 @@
 #define WAIT_TIME_UPLOAD (180*60)
 
 #define VALID_HR 30
+#define INVALID_HR_MAX_DURATION 30
+#define NEG_HR_MAX_DURATION 20
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
 // application data (context) that will be passed to functions when needed
