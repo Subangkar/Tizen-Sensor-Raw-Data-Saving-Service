@@ -25,7 +25,7 @@ This service is started by by pressing the “Start” button from the native ap
 HR | PPG | Accelerometer_(X|Y|Z) | Gyro_(X|Y|Z) | Pressure | Gravity_(X|Y|Z) | Activity(N/S/W/R/V) | [Reading UNIX Timestamp](https://www.epochconverter.com/)  
   
 **System Requirements:**
-  - Tizen SDK-2.2.1
+  - Tizen SDK-2.3.1
   
 **How to Build/Run:**
   - Load both this project and native app project in tizen studio
