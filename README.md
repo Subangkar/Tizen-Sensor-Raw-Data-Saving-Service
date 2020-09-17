@@ -21,7 +21,8 @@ This service is started by by pressing the “Start” button from the native ap
   - Gravity 
   - Activity (Stationary/Walking/Running/In Vehicle) 
 - Data Collection Frequency: 10Hz
-- Sample CSV columns: HR, PPG, Accelerometer_(X,Y,Z), Gyro_(X,Y,Z), Pressure, Gravity_(X,Y,Z), Activity(N/S/W/R/V), Reading UNIX Timestamp in seconds   
+- Sample CSV columns:  
+HR | PPG | Accelerometer_(X|Y|Z) | Gyro_(X|Y|Z) | Pressure | Gravity_(X|Y|Z) | Activity(N/S/W/R/V) | [Reading UNIX Timestamp](https://www.epochconverter.com/)  
   
 **System Requirements:**
   - Tizen SDK-2.2.1
