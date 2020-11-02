@@ -24,7 +24,7 @@
 #define DEVICE4_ID "device4_r5ak104tvqe"
 #define DEVICE5_ID "device5_r5ak104tvqe"
 
-#define USER_ID DEVICE1_ID
+#define USER_ID DEVICE3_ID
 
 #define DATA_RECORDING_DURATION (3*60)
 #define DATA_RECORDING_INTERVAL (80*60)

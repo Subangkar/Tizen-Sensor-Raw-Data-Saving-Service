@@ -4,6 +4,8 @@
 #include <Ecore.h>
 #include <device/power.h>
 
+#include "btft.h"
+
 appdata_t appdata;
 
 
@@ -30,9 +32,16 @@ bool service_app_create(void *data)
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, "Starting activity recognition...");
 #endif
+
+
 	activity_recognition_start();
 
 	start_timed_sensors(data);
+
+	#ifdef DEBUG_ON
+		dlog_print(DLOG_INFO, LOG_TAG, "Initializing BT SAP...");
+	#endif
+	initialize_sap();
 	return true;
 }
 

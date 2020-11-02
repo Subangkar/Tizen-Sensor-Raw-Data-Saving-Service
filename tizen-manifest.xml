@@ -7,5 +7,6 @@
         <metadata key="http://tizen.org/metadata/background-category/background-network"/>
         <metadata key="http://tizen.org/metadata/background-category/sensor"/>
         <metadata key="http://tizen.org/metadata/background-category/location"/>
+        <metadata key="accessory-services-location" value="/res/xml/accessoryservices.xml"/>
     </service-application>
 </manifest>

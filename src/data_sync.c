@@ -10,6 +10,8 @@
 
 #include <sys/types.h>
 
+#include "btft.h"
+
 
 #define SERVER_URL "http://hr-logger.herokuapp.com/data/" // "http://192.168.0.106:8000/data/"
 #define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
@@ -120,12 +122,25 @@ int uploadAllFiles(const char* dir){
     trim(filename);
     strcpy(filePath+pathSize, filename);
 #ifdef DEBUG_ON
-    dlog_print(DLOG_WARN, LOG_TAG, "Uploading %s\n", filePath);
+    dlog_print(DLOG_INFO, LOG_TAG, "Uploading %s\n", filePath);
 #endif
-    if(uploadFile(SERVER_URL, filename, filePath)) {
-    	pclose(fileList);
-    	return 0;
+
+    if(find_peers()){
+#ifdef DEBUG_ON
+    dlog_print(DLOG_INFO, LOG_TAG, "Peer Found Bluetooth\n");
+#endif
+    	if (send_file(filePath) == 0) {
+#ifdef DEBUG_ON
+    	    dlog_print(DLOG_ERROR, LOG_TAG, "Error in Sending File %s\n", filePath);
+    	    return 0;
+#endif
+    	}
     }
+
+//    if(uploadFile(SERVER_URL, filename, filePath)) {
+//    	pclose(fileList);
+//    	return 0;
+//    }
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "\"%s\" Uploaded\n", filename);
 #endif

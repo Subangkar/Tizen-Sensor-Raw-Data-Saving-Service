@@ -1,0 +1,69 @@
+collections {
+   group { name: "slider_layout";
+      parts {
+         part { name: "elm.swallow.content";
+            type: SWALLOW;
+            scale: 1;
+            description { state: "default" 0.0;
+            }
+         }
+         part { name: "elm.text.slider";
+            type: TEXT;
+            scale: 1;
+            description { state: "default" 0.0;
+               fixed: 1 1;
+               rel1.relative: 0.5 0.5;
+               rel2.relative: 0.5 0.5;
+               text {
+                  font: "Tizen:style=Regular";
+                  size: 50;
+                  min: 1 1;
+               }
+               color: 255 255 255 255;
+            }
+         }
+      }
+   }
+   group { name: "info_layout";
+      parts{
+         part { name: "left_top_padding";
+            type: SPACER;
+            description { state: "default" 0.0;
+               min: 50 70;
+               fixed: 1 1;
+               align: 0.0 0.0;
+               rel2.relative: 0.0 0.0;
+            }
+         }
+         part { name: "right_bottom_padding";
+            type: SPACER;
+            description { state: "default" 0.0;
+               min: 50 100;
+               fixed: 1 1;
+               align: 1.0 1.0;
+               rel1.relative: 1.0 1.0;
+            }
+         }
+         part { name: "elm.swallow.content";
+         type: SWALLOW;
+         scale: 1;
+            description { state: "default" 0.0;
+               rel1.to: "left_top_padding";
+               rel1.relative: 1.0 1.0;
+               rel2.to: "right_bottom_padding";
+               rel2.relative: 0.0 0.0;
+            }
+         }
+         part { name: "elm.swallow.button";
+         type: SWALLOW;
+         scale: 1;
+            description { state: "default" 0.0;
+               align: 0.5 1.0;
+               fixed: 0 1;
+               rel1.relative: 0.0 1.0;
+               rel2.relative: 1.0 1.0;
+            }
+         }
+      }
+   }
+}
