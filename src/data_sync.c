@@ -139,11 +139,11 @@ int uploadAllFiles(const char* dir){
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "Peer Found Bluetooth\n");
 #endif
-    	if (send_file(filePath) == 0) {
+    	if (send_file(filePath) != 0) {
 #ifdef DEBUG_ON
-    	  dlog_print(DLOG_ERROR, LOG_TAG, "Error in Sending File %s\n", filePath);
-          pclose(fileList);
-    	    return 0;
+    		dlog_print(DLOG_ERROR, LOG_TAG, "Error in Sending File %s\n", filePath);
+    		pclose(fileList);
+    		return 0;
 #endif
     	}
     }

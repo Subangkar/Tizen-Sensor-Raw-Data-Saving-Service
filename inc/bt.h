@@ -42,10 +42,7 @@ char file_on_progress;
 
 //gboolean find_peers();
 //gboolean send_file();
-//void     add_send_button();
 gboolean initialize_sap();
-//void     set_progress_bar_value(float percentage);
-//void     show_ft_result_popup(char *message, gboolean pop_parent);
 //void     cancel_file();
 
 void naviframe_popped_cb();
@@ -54,6 +51,7 @@ struct priv {
 	sap_agent_h agent;
 	sap_file_transaction_h file_socket;
 	sap_peer_agent_h peer_agent;
+	sap_ft_transfer_e result;
 };
 
 #endif /* __FT_MAIN_H__ */

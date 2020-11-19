@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <rawsensordata.h>
+
 #include <stdio.h>
 #include <glib.h>
 #include <dlog.h>
@@ -39,10 +41,10 @@ static void _on_send_completed(sap_file_transaction_h file_transaction,
 	}
 
 	priv_data.file_socket = NULL;
+	priv_data.result = result;
 
 	if (result == SAP_FT_TRANSFER_SUCCESS) {
 		sprintf(error_message, "Transfer Completed");
-//		show_ft_result_popup(error_message, 1);
 	} else {
 		switch (result) {
 		case (SAP_FT_TRANSFER_FAIL_CHANNEL_IO): {
@@ -87,6 +89,9 @@ static void _on_send_completed(sap_file_transaction_h file_transaction,
 //		show_ft_result_popup(error_message, 1);
 	}
 
+#ifdef DEBUG_ON
+	dlog_print(DLOG_INFO, LOG_TAG, "%s", error_message);
+#endif
 	file_on_progress = 0;
 }
 
@@ -112,7 +117,7 @@ static void __set_file_transfer_cb()
 int send_file(char* file_path)
 {
 	dlog_print(DLOG_INFO, TAG, "sending file");
-//	char file_path[100];
+	priv_data.result = SAP_FT_TRANSFER_FAIL_SPACE_NOT_AVAILABLE;
 
 //	sprintf(file_path, "%sfile.txt", app_get_shared_resource_path());
 
@@ -120,7 +125,8 @@ int send_file(char* file_path)
 
 	__set_file_transfer_cb();
 
-	if (priv_data.file_socket == NULL)
+	dlog_print(DLOG_INFO, TAG, "det. sent file stat");
+	if (priv_data.file_socket == NULL && priv_data.result == SAP_FT_TRANSFER_SUCCESS)
 		return 0;
 
 	return 1;
@@ -294,16 +300,10 @@ static void _on_device_status_changed(sap_device_status_e status,
 
 		file_on_progress = 0;
 
-//		show_popup("Device Disconnected.");
-
-//		remove_send_button();
-
 		break;
 
 	case SAP_DEVICE_STATUS_ATTACHED:
 		dlog_print(DLOG_DEBUG, TAG, "Attached calling find peer now");
-
-//		show_popup("Connected. Call find peer.");
 
 		break;
 

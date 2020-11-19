@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
- #include <sys/types.h>
+#include <sys/types.h>
 #include "statvars.h"
 
 
@@ -31,6 +31,7 @@ int get_id_from_config(char* config_dir, char* id){
 	}
 	fgets(id,100,config_file);
 	fclose(config_file);
+	trim(id);
 	if(!strlen(id)) return 0;
 	return 1;
 }
