@@ -17,6 +17,8 @@
 #define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
 #define CURL_MAX_CONNECT_TIME 20L
 
+int skip_invalid_file_upload = SKIP_INVALID_FILE_UPLOAD;
+
 // returns 0 for success
 int uploadFile(const char *server_url, const char *filename, const char* filePath)
 {
@@ -103,8 +105,16 @@ void trim(char * s) {
 // uploads files serially and deletes at once the file is uploaded
 int uploadAllFiles(const char* dir){
   char cmd[256];
-  sprintf(cmd, "find %s -maxdepth 1 -type f -size -%dk -exec rm -r {} \\;", dir, INVALID_HR_MAX_DURATION+1);
-  system(cmd);
+
+#ifdef DEBUG_ON
+    dlog_print(DLOG_INFO, LOG_TAG, "Trying to Upload All");
+#endif
+
+  if(skip_invalid_file_upload){
+    sprintf(cmd, "find %s -maxdepth 1 -type f -size -%dk -exec rm -r {} \\;", dir, INVALID_HR_MAX_DURATION+1);
+    system(cmd);
+  }
+
   sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv'", dir);
 
   FILE *fileList = popen(cmd, "r");
@@ -131,7 +141,8 @@ int uploadAllFiles(const char* dir){
 #endif
     	if (send_file(filePath) == 0) {
 #ifdef DEBUG_ON
-    	    dlog_print(DLOG_ERROR, LOG_TAG, "Error in Sending File %s\n", filePath);
+    	  dlog_print(DLOG_ERROR, LOG_TAG, "Error in Sending File %s\n", filePath);
+          pclose(fileList);
     	    return 0;
 #endif
     	}
@@ -143,6 +154,9 @@ int uploadAllFiles(const char* dir){
 //    }
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "\"%s\" Uploaded\n", filename);
+#endif
+#ifdef DEBUG_ON
+    dlog_print(DLOG_INFO, LOG_TAG, "Deleting \"%s\"\n", filename);
 #endif
     sprintf(cmd, "rm %s", filePath);
     system(cmd);

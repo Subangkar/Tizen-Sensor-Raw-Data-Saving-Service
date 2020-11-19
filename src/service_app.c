@@ -5,8 +5,12 @@
 #include <device/power.h>
 
 #include "btft.h"
+#include "statvars.h"
+
 
 appdata_t appdata;
+
+// extern char user_id[256];
 
 
 void start_timed_sensors(void *data);
@@ -15,12 +19,20 @@ void stop_sensors();
 extern void activity_recognition_start();
 extern void activity_recognition_stop();
 
+void load_profile_id_from_config();
+
 bool service_app_create(void *data)
 {
 	device_power_request_lock(POWER_LOCK_CPU, 0);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create called...");
 #endif
+
+	load_profile_id_from_config();
+#ifdef DEBUG_ON
+	dlog_print(DLOG_INFO, LOG_TAG, "Loaded profile: %s", user_id);
+#endif
+	
 //	appdata = *(appdata_t*)data;
 	strncpy(appdata.userid, "subangkar", 31);
 	appdata.recording_duration=DATA_RECORDING_DURATION;

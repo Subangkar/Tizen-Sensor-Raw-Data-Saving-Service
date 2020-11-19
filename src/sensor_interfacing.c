@@ -15,6 +15,7 @@
 
 
 #include <activity_recognition.h>
+#include "statvars.h"
 
 // --------------------------------------- External Functions ---------------------------------------
 int uploadAllFiles(const char* dir);
@@ -52,6 +53,10 @@ extern char activity_names[][2];
 
 // -------------------------- Timer Functions End ----------------------------------------
 
+// -------------------------- Profile Start ----------------------------------------
+ extern char user_id[];
+// -------------------------- Profile End ----------------------------------------
+
 // -------------------------- File Utils Functions Start ----------------------------------------
 FILE* fp = NULL;
 time_t timestamp_start=0;
@@ -65,7 +70,7 @@ FILE* create_new_data_file() {
 	system(cmd);
 	timestamp_start=time(NULL);
 	timestamp_last_neg_hr=timestamp_last_inv_hr=timestamp_start;
-	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", USER_ID, timestamp_start);
+	sprintf(fpath, "%s%s/_%s_%ld.csv", app_get_data_path(), "current", user_id, timestamp_start);
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> new file opened %s...", fpath);
 #endif

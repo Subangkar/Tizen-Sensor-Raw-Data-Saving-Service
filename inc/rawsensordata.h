@@ -34,6 +34,9 @@
 #define VALID_HR 30
 #define INVALID_HR_MAX_DURATION 30
 #define NEG_HR_MAX_DURATION 20
+
+#define SKIP_INVALID_FILE_UPLOAD 0
+
 // -------------------------- Data Type Definitions Start ----------------------------------------
 
 // application data (context) that will be passed to functions when needed
