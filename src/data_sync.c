@@ -19,6 +19,22 @@
 
 int skip_invalid_file_upload = SKIP_INVALID_FILE_UPLOAD;
 
+void update_last_upload_time();
+
+int uploadAllFiles_Wifi(const char* dir);
+int uploadAllFiles_Bluetooth(const char* dir);
+const char* get_next_filePath(const char* dir);
+
+int deleteFile(char* filePath){
+  char cmd[256];
+  sprintf(cmd, "rm %s", filePath);
+  system(cmd);
+#ifdef DEBUG_ON
+		dlog_print(DLOG_INFO, LOG_TAG, "Deleted file: %s", filePath);
+#endif
+  return 0;
+}
+
 // returns 0 for success
 int uploadFile(const char *server_url, const char *filename, const char* filePath)
 {
@@ -91,76 +107,109 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
   return response_code==200 ? 0:1;
 }
 
-void trim(char * s) {
+// trims trailing wsp inplace and returns updated str_len
+int trim(char * s) {
     char * p = s;
     int l = strlen(p);
 
     while(isspace(p[l - 1])) p[--l] = 0;
-    while(* p && isspace(* p)) ++p, --l;
+    while(*p && isspace(*p)) ++p, --l;
 
     memmove(s, p, l + 1);
+    return l;
 }
 
+
+const char* get_next_filePath(const char* dir){
+  static char cmd[256];
+  static char filePath[256];
+  static char filename[256];
+
+  sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv' | head -n 1", dir);
+
+  strcpy(filePath, dir);
+  if(filePath[strlen(filePath)-1]!='/'){
+    strcat(filePath, "/");
+  }
+
+  FILE *fileList = popen(cmd, "r");
+  if (!fileList) return NULL;
+
+  if (fgets(filename, 256, fileList) != NULL && trim(filename))   {
+      strcat(filePath, filename);
+      return filePath;
+  }
+  pclose(fileList);
+  return NULL;
+}
 
 // uploads files serially and deletes at once the file is uploaded
 int uploadAllFiles(const char* dir){
   char cmd[256];
-
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "Trying to Upload All");
 #endif
 
   if(skip_invalid_file_upload){
-    sprintf(cmd, "find %s -maxdepth 1 -type f -size -%dk -exec rm -r {} \\;", dir, INVALID_HR_MAX_DURATION+1);
+    sprintf(cmd, "find %s -maxdepth 1 -type f -name '*.csv' -size -%dk -exec rm -r {} \\;", dir, INVALID_HR_MAX_DURATION+1);
     system(cmd);
   }
+
+  // uploadAllFiles_Wifi(dir);
+  uploadAllFiles_Bluetooth(dir);
+
+  return 1;
+}
+
+// returns 0 for success
+int uploadAllFiles_Wifi(const char* dir){
+  char cmd[256];
+  char filePath[256];
+  char filename[256];
 
   sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv'", dir);
 
   FILE *fileList = popen(cmd, "r");
+  if (!fileList) return 1;
 
-  char filePath[256];
   strcpy(filePath, dir);
   if(filePath[strlen(filePath)-1]!='/'){
     strcat(filePath, "/");
   }
   int pathSize = strlen(filePath);
 
-  char filename[256];
-  while (fgets(filename, 256, fileList) != NULL)
+  while (fgets(filename, 256, fileList) != NULL && trim(filename))
   {
-    trim(filename);
-    strcpy(filePath+pathSize, filename);
+    strcat(filePath, filename);
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "Uploading %s\n", filePath);
 #endif
 
-    if(find_peers()){
-#ifdef DEBUG_ON
-    dlog_print(DLOG_INFO, LOG_TAG, "Peer Found Bluetooth\n");
-#endif
-    	if (send_file(filePath) != 0) {
-#ifdef DEBUG_ON
-    		dlog_print(DLOG_ERROR, LOG_TAG, "Error in Sending File %s\n", filePath);
-    		pclose(fileList);
-    		return 0;
-#endif
-    	}
-    }
-
-//    if(uploadFile(SERVER_URL, filename, filePath)) {
-//    	pclose(fileList);
-//    	return 0;
-//    }
+   if(uploadFile(SERVER_URL, filename, filePath)) {
+   	pclose(fileList);
+   	return 0;
+   }
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "\"%s\" Uploaded\n", filename);
 #endif
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "Deleting \"%s\"\n", filename);
 #endif
-    sprintf(cmd, "rm %s", filePath);
-    system(cmd);
+    deleteFile(filePath);
   }
   pclose(fileList);
+
+  update_last_upload_time();
   return 1;
+}
+
+int uploadAllFiles_Bluetooth(const char* dir){
+  if(find_peers()){
+#ifdef DEBUG_ON
+    dlog_print(DLOG_INFO, LOG_TAG, "Peer Found Bluetooth\n");
+#endif
+    const char* filePath;
+    if(filePath = get_next_filePath(dir))
+      send_file(filePath);
+  }
 }

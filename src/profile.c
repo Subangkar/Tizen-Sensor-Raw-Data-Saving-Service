@@ -13,7 +13,7 @@
 
 char user_id[256];
 
-void trim(char * s);
+int trim(char * s);
 
 int get_id_from_config(char* config_dir, char* id){
 	char filePath[256];

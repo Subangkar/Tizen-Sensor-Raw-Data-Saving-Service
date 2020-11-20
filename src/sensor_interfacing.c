@@ -89,6 +89,10 @@ void close_current_data_file() {
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> current file closed...");
 #endif
 }
+
+void update_last_upload_time(){
+	last_uploaded_timestamp = time(NULL);
+}
 // -------------------------- File Utils Functions End ------------------------------------------
 
 Eina_Bool pause_sensors(void *vc);
@@ -334,8 +338,9 @@ Eina_Bool upload_data(void *vc){
 	dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_data called...");
 #endif
 	// a significant delay is introduced here if no internet connection available
-	if(time(NULL)-last_uploaded_timestamp>=WAIT_TIME_UPLOAD && uploadAllFiles(app_get_data_path()))	{
-		last_uploaded_timestamp=time(NULL);
+	if(time(NULL)-last_uploaded_timestamp>=WAIT_TIME_UPLOAD)	{
+		uploadAllFiles(app_get_data_path());
+		update_last_upload_time();
 	}
 #ifdef DEBUG_ON
 	else

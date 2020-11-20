@@ -23,19 +23,37 @@
 #include <bt.h>
 #include <string.h>
 
+static char transfer_messages[][100]={
+	[SAP_FT_TRANSFER_SUCCESS]="Transfer Completed",
+	[SAP_FT_TRANSFER_FAIL_CHANNEL_IO]="Channel IO Error",
+	[SAP_FT_TRANSFER_FAIL_FILE_IO]="File IO Error",
+	[SAP_FT_TRANSFER_FAIL_CMD_DROPPED]="Transfer dropped",
+	[SAP_FT_TRANSFER_FAIL_PEER_UNRESPONSIVE]="Peer Un Responsive",
+	[SAP_FT_TRANSFER_FAIL_PEER_CONN_LOST]="Device Connection Lost",
+	[SAP_FT_TRANSFER_FAIL_PEER_CANCELLED]="Peer Cancelled",
+	[SAP_FT_TRANSFER_FAIL_SPACE_NOT_AVAILABLE]="No Space",
+	[6]="Unknown Error",
+	[7]="Unknown Error",
+	[8]="Unknown Error",
+	[10]="Unknown Error",
+};
+
 static int connected = 0;
 struct priv priv_data;
 
+int deleteFile(char* filePath);
+const char* get_next_filePath(const char*);
+void update_last_upload_time();
+
 static gboolean _find_peer_agent(gpointer user_data);
+
+int send_file(char* file_path);
 
 static void _on_send_completed(sap_file_transaction_h file_transaction,
 			       sap_ft_transfer_e result,
 			       const char *file_path,
 			       void *user_data)
 {
-	char error_message[100];
-//	set_progress_bar_value(1);
-
 	if (priv_data.file_socket) {
 		sap_file_transfer_destroy(priv_data.file_socket);
 	}
@@ -44,53 +62,23 @@ static void _on_send_completed(sap_file_transaction_h file_transaction,
 	priv_data.result = result;
 
 	if (result == SAP_FT_TRANSFER_SUCCESS) {
-		sprintf(error_message, "Transfer Completed");
-	} else {
-		switch (result) {
-		case (SAP_FT_TRANSFER_FAIL_CHANNEL_IO): {
-			sprintf(error_message, "Channel IO Error.");
-			break;
-		}
-
-		case (SAP_FT_TRANSFER_FAIL_FILE_IO): {
-			sprintf(error_message, "File IO Error.");
-			break;
-		}
-
-		case (SAP_FT_TRANSFER_FAIL_CMD_DROPPED): {
-			sprintf(error_message, "Transfer dropped/");
-			break;
-		}
-
-		case (SAP_FT_TRANSFER_FAIL_PEER_UNRESPONSIVE): {
-			sprintf(error_message, "Peer Un Responsive.");
-			break;
-		}
-
-		case (SAP_FT_TRANSFER_FAIL_PEER_CONN_LOST): {
-			sprintf(error_message, "Device Connection Lost.");
-			break;
-		}
-
-		case (SAP_FT_TRANSFER_FAIL_PEER_CANCELLED): {
-			sprintf(error_message, "Peer Cancelled.");
-			break;
-		}
-
-		case (SAP_FT_TRANSFER_FAIL_SPACE_NOT_AVAILABLE): {
-			sprintf(error_message, "No Space.");
-			break;
-		}
-
-		default:
-			sprintf(error_message, "Unknown Error");
-		}
-
-//		show_ft_result_popup(error_message, 1);
-	}
-
 #ifdef DEBUG_ON
-	dlog_print(DLOG_INFO, LOG_TAG, "%s", error_message);
+		dlog_print(DLOG_INFO, LOG_TAG, "Transfer Completed of: %s", file_path);
+#endif
+		deleteFile(file_path);
+		file_on_progress = 0;
+		const char* nextfilePath;
+		if(nextfilePath = get_next_filePath(app_get_data_path()))
+			send_file(nextfilePath);
+		else update_last_upload_time();
+	} 
+#ifdef DEBUG_ON
+	else {
+		if (result < sizeof(transfer_messages)/sizeof(transfer_messages[0]))
+			dlog_print(DLOG_ERROR, LOG_TAG, "%s", transfer_messages[(int)(result)]);
+		else 
+			dlog_print(DLOG_ERROR, LOG_TAG, "Unknown Error");
+	}
 #endif
 	file_on_progress = 0;
 }
@@ -125,7 +113,6 @@ int send_file(char* file_path)
 
 	__set_file_transfer_cb();
 
-	dlog_print(DLOG_INFO, TAG, "det. sent file stat");
 	if (priv_data.file_socket == NULL && priv_data.result == SAP_FT_TRANSFER_SUCCESS)
 		return 0;
 
@@ -149,8 +136,6 @@ void on_peer_agent_updated(sap_peer_agent_h peer_agent,
 		if (peer_status == SAP_PEER_AGENT_STATUS_AVAILABLE) {
 			dlog_print(DLOG_INFO, TAG, "STATUS_AVAILABLE");
 			priv_data.peer_agent = peer_agent;
-
-//			add_send_button();
 
 		} else {
 			priv_data.peer_agent = peer_agent;
@@ -211,8 +196,6 @@ gboolean find_peers()
 		_find_peer_agent(&priv_data);
 		return TRUE;
 	}
-
-//	show_popup("Device not connected");
 	return FALSE;
 }
 
