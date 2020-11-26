@@ -34,9 +34,9 @@ bool service_app_create(void *data)
 #endif
 	
 //	appdata = *(appdata_t*)data;
-	strncpy(appdata.userid, "subangkar", 31);
-	appdata.recording_duration=DATA_RECORDING_DURATION;
-	appdata.recording_interval=DATA_RECORDING_INTERVAL;
+	// strncpy(appdata.userid, "subangkar", 31);
+	// appdata.recording_duration=DATA_RECORDING_DURATION;
+	// appdata.recording_interval=DATA_RECORDING_INTERVAL;
 
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, ">>> service_app_create %s %u %u...", appdata.userid, appdata.recording_duration, appdata.recording_interval);
@@ -50,10 +50,13 @@ bool service_app_create(void *data)
 
 	start_timed_sensors(data);
 
-	#ifdef DEBUG_ON
-		dlog_print(DLOG_INFO, LOG_TAG, "Initializing BT SAP...");
-	#endif
+#ifdef DEBUG_ON
+	dlog_print(DLOG_INFO, LOG_TAG, "Initializing BT SAP...");
+#endif
+
+#ifdef BT_ENABLED
 	initialize_sap();
+#endif
 	return true;
 }
 

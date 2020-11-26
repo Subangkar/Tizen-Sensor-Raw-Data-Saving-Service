@@ -103,7 +103,12 @@ void update_sensor_current_val(float val, sensor_t type) {
 	static int16_t read_sensors = 0;
 
 	if (!fp) {
-		fp = create_new_data_file();
+		if((fp = create_new_data_file())==NULL){
+#ifdef DEBUG_ON
+			dlog_print(DLOG_ERROR, LOG_TAG, "cannot open data file at %ld", time(NULL));
+#endif	
+			return;
+		}	
 	}
 
 	if (type == ALL) {

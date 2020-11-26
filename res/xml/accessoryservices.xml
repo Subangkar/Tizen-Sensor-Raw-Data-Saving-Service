@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <application name="org.example.drgbtppg" >
+        <serviceProfile
+            id="/sample/filetransfer"
+            name="FileTransferSender"
+            role="consumer"
+            version="2.0"
+            serviceLimit="ONE_PEERAGENT"
+            serviceTimeout="30">
+            <supportedTransports>
+                <transport type="TRANSPORT_BT" />
+                <transport type="TRANSPORT_WIFI"/>
+            </supportedTransports>
+            <serviceChannel
+                id="107"
+                dataRate="low"
+                priority="low"
+                reliability= "enable">
+            </serviceChannel>
+        </serviceProfile>
+    </application>
+</resources>

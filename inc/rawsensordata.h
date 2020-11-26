@@ -14,6 +14,7 @@
 #include <dlog.h>
 #define LOG_TAG "X_rawsensordata"
 #endif
+// #define BT_ENABLED
 
 #define LAUNCHER_APP_ID "org.example.drgbtppg" // an ID of the UI application of our package
 

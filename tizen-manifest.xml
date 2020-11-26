@@ -9,4 +9,13 @@
         <metadata key="http://tizen.org/metadata/background-category/location"/>
         <metadata key="accessory-services-location" value="/res/xml/accessoryservices.xml"/>
     </service-application>
+    <privileges>
+        <privilege>http://tizen.org/privilege/network.get</privilege>
+        <privilege>http://tizen.org/privilege/healthinfo</privilege>
+        <privilege>http://tizen.org/privilege/network.set</privilege>
+        <privilege>http://tizen.org/privilege/internet</privilege>
+        <privilege>http://developer.samsung.com/tizen/privilege/accessoryprotocol</privilege>
+        <privilege>http://tizen.org/privilege/network.profile</privilege>
+        <privilege>http://tizen.org/privilege/power</privilege>
+    </privileges>
 </manifest>

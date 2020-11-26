@@ -25,6 +25,16 @@ int uploadAllFiles_Wifi(const char* dir);
 int uploadAllFiles_Bluetooth(const char* dir);
 const char* get_next_filePath(const char* dir);
 
+char *basename(char const *path)
+{
+    char *s = strrchr(path, '/');
+    if (!s)
+        return strdup(path);
+    else
+        return strdup(s + 1);
+}
+
+
 int deleteFile(char* filePath){
   char cmd[256];
   sprintf(cmd, "rm %s", filePath);
@@ -107,6 +117,86 @@ int uploadFile(const char *server_url, const char *filename, const char* filePat
   return response_code==200 ? 0:1;
 }
 
+
+// returns 0 for success
+int postFile(const char *server_url, const char *filename, const char* filePath, const char* id, const char* timestamp)
+{
+  CURL *curl;
+  CURLcode res;
+  long response_code = 0;
+
+  struct curl_httppost *formpost=NULL;
+  struct curl_httppost *lastptr=NULL;
+  struct curl_slist *headerlist=NULL;
+  static const char buf[] = "Expect:";
+
+  curl_global_init(CURL_GLOBAL_ALL);
+
+  /* Fill in the file upload field */
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "file",
+               CURLFORM_FILE, filePath,
+               CURLFORM_END);
+
+  /* Fill in the filename field */
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "filename",
+               CURLFORM_COPYCONTENTS, filename,
+               CURLFORM_END);
+
+  /* Fill in the id field */
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "id",
+               CURLFORM_COPYCONTENTS, id,
+               CURLFORM_END);
+
+  /* Fill in the timestamp field */
+  curl_formadd(&formpost,
+               &lastptr,
+               CURLFORM_COPYNAME, "timestamp",
+               CURLFORM_COPYCONTENTS, timestamp,
+               CURLFORM_END);
+
+
+  curl = curl_easy_init();
+  /* initalize custom header list (stating that Expect: 100-continue is not
+     wanted */
+  headerlist = curl_slist_append(headerlist, buf);
+  if(curl) {
+    /* what URL that receives this POST */
+    curl_easy_setopt(curl, CURLOPT_URL, server_url);
+    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+
+    /* Perform the request, res will get the return code */
+    res = curl_easy_perform(curl);
+    /* Check for errors */
+    if (res != CURLE_OK)
+    {
+#ifdef DEBUG_ON
+      dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
+      return 1;
+    }
+    else
+    {
+      /* now extract transfer info */
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE , &response_code);
+    }
+
+    /* always cleanup */
+    curl_easy_cleanup(curl);
+
+    /* then cleanup the formpost chain */
+    curl_formfree(formpost);
+    /* free slist */
+    curl_slist_free_all (headerlist);
+  }
+  return response_code == 200 ? 0:1;
+}
+
 // trims trailing wsp inplace and returns updated str_len
 int trim(char * s) {
     char * p = s;
@@ -155,8 +245,11 @@ int uploadAllFiles(const char* dir){
     system(cmd);
   }
 
-  // uploadAllFiles_Wifi(dir);
+#ifdef BT_ENABLED
   uploadAllFiles_Bluetooth(dir);
+#else
+  uploadAllFiles_Wifi(dir);
+#endif
 
   return 1;
 }
@@ -166,8 +259,10 @@ int uploadAllFiles_Wifi(const char* dir){
   char cmd[256];
   char filePath[256];
   char filename[256];
+  char id[256]="\0", timestamp[256]="\0";
 
-  sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv'", dir);
+  // sprintf(cmd, "ls -F  %s | grep -Ev '/|@|=|>|\\|' | sed s/*// | grep -E '*.csv'", dir); // grep -Ev used to ignore files in subfolders
+  sprintf(cmd, "ls -F %s | grep -Ev '/' | grep -E '*.csv'", dir); //| grep -Ev '/|@|>|\\' | sed s/*// 
 
   FILE *fileList = popen(cmd, "r");
   if (!fileList) return 1;
@@ -181,11 +276,13 @@ int uploadAllFiles_Wifi(const char* dir){
   while (fgets(filename, 256, fileList) != NULL && trim(filename))
   {
     strcat(filePath, filename);
+    sscanf(filename, "_%255[^_]_%255[^.]", id, timestamp);
 #ifdef DEBUG_ON
-    dlog_print(DLOG_INFO, LOG_TAG, "Uploading %s\n", filePath);
+    dlog_print(DLOG_INFO, LOG_TAG, "Uploading %s with id: %s timestamp:%s\n", filePath, id, timestamp);
 #endif
-
-   if(uploadFile(SERVER_URL, filename, filePath)) {
+    if(*id == '\0' || *timestamp == '\0') continue;
+  //  if(uploadFile(SERVER_URL, filename, filePath)) {
+    if(postFile(SERVER_URL, filename, filePath, id, timestamp)){
    	pclose(fileList);
    	return 0;
    }
@@ -196,6 +293,8 @@ int uploadAllFiles_Wifi(const char* dir){
     dlog_print(DLOG_INFO, LOG_TAG, "Deleting \"%s\"\n", filename);
 #endif
     deleteFile(filePath);
+    *id = '\0';
+    *timestamp = '\0';
   }
   pclose(fileList);
 

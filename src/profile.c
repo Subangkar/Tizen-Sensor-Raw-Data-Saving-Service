@@ -15,6 +15,7 @@ char user_id[256];
 
 int trim(char * s);
 
+// reads "tizenID sl" and returns id: "tizenID_sl"
 int get_id_from_config(char* config_dir, char* id){
 	char filePath[256];
 	strcpy(filePath, config_dir);
@@ -22,14 +23,14 @@ int get_id_from_config(char* config_dir, char* id){
 	strcat(filePath, "/");
 	}
 	int pathSize = strlen(filePath);
-	char* filename = "config.json";
+	char* filename = "config.cfg";
 	strcpy(filePath+pathSize, filename);
 	FILE *config_file = fopen(filePath, "r");
 	if(!config_file){
 		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to open file: %s", filePath);
 		return 0;
 	}
-	fgets(id,100,config_file);
+	fscanf(config_file,"%s", id);
 	fclose(config_file);
 	trim(id);
 	if(!strlen(id)) return 0;
