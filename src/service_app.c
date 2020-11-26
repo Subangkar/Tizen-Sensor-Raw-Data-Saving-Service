@@ -4,7 +4,9 @@
 #include <Ecore.h>
 #include <device/power.h>
 
+#ifdef BT_ENABLED
 #include "btft.h"
+#endif
 #include "statvars.h"
 
 
@@ -50,11 +52,10 @@ bool service_app_create(void *data)
 
 	start_timed_sensors(data);
 
+#ifdef BT_ENABLED
 #ifdef DEBUG_ON
 	dlog_print(DLOG_INFO, LOG_TAG, "Initializing BT SAP...");
 #endif
-
-#ifdef BT_ENABLED
 	initialize_sap();
 #endif
 	return true;

@@ -10,7 +10,9 @@
 
 #include <sys/types.h>
 
+#ifdef BT_ENABLED
 #include "btft.h"
+#endif
 
 
 #define SERVER_URL "http://hr-logger.herokuapp.com/data/" // "http://192.168.0.106:8000/data/"
@@ -271,7 +273,6 @@ int uploadAllFiles_Wifi(const char* dir){
   if(filePath[strlen(filePath)-1]!='/'){
     strcat(filePath, "/");
   }
-  int pathSize = strlen(filePath);
 
   while (fgets(filename, 256, fileList) != NULL && trim(filename))
   {
@@ -302,6 +303,7 @@ int uploadAllFiles_Wifi(const char* dir){
   return 1;
 }
 
+#ifdef BT_ENABLED
 int uploadAllFiles_Bluetooth(const char* dir){
   if(find_peers()){
 #ifdef DEBUG_ON
@@ -311,4 +313,6 @@ int uploadAllFiles_Bluetooth(const char* dir){
     if(filePath = get_next_filePath(dir))
       send_file(filePath);
   }
+  return 0;
 }
+#endif

@@ -68,7 +68,7 @@ static void _on_send_completed(sap_file_transaction_h file_transaction,
 		deleteFile(file_path);
 		file_on_progress = 0;
 		const char* nextfilePath;
-		if(nextfilePath = get_next_filePath(app_get_data_path()))
+		if((nextfilePath = get_next_filePath(app_get_data_path())))
 			send_file(nextfilePath);
 		else update_last_upload_time();
 	} 
