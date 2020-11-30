@@ -15,7 +15,7 @@
 #endif
 
 
-#define SERVER_URL "http://hr-logger.herokuapp.com/data/" // "http://192.168.0.106:8000/data/"
+#define SERVER_URL "http://datalab.buet.io:8001/file/upload/" //"https://bayesbeat.herokuapp.com/file/upload/" //"http://192.168.1.104:8000/" // "http://hr-logger.herokuapp.com/data/" // "http://192.168.1.104:8000/"
 #define CURL_MAX_TRANS_TIME DATA_FILE_SIZE_AVG
 #define CURL_MAX_CONNECT_TIME 20L
 
@@ -24,7 +24,9 @@ int skip_invalid_file_upload = SKIP_INVALID_FILE_UPLOAD;
 void update_last_upload_time();
 
 int uploadAllFiles_Wifi(const char* dir);
+#ifdef BT_ENABLED
 int uploadAllFiles_Bluetooth(const char* dir);
+#endif
 const char* get_next_filePath(const char* dir);
 
 char *basename(char const *path)
@@ -151,7 +153,7 @@ int postFile(const char *server_url, const char *filename, const char* filePath,
   /* Fill in the id field */
   curl_formadd(&formpost,
                &lastptr,
-               CURLFORM_COPYNAME, "id",
+               CURLFORM_COPYNAME, "device_id",
                CURLFORM_COPYCONTENTS, id,
                CURLFORM_END);
 
@@ -171,6 +173,12 @@ int postFile(const char *server_url, const char *filename, const char* filePath,
     /* what URL that receives this POST */
     curl_easy_setopt(curl, CURLOPT_URL, server_url);
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+
+    /* complete connection within 10 seconds */
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, CURL_MAX_CONNECT_TIME);
+
+    /* complete within 20 seconds */
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, CURL_MAX_TRANS_TIME);
 
     /* Perform the request, res will get the return code */
     res = curl_easy_perform(curl);
@@ -274,9 +282,11 @@ int uploadAllFiles_Wifi(const char* dir){
     strcat(filePath, "/");
   }
 
+  int pathlen = strlen(filePath);
+
   while (fgets(filename, 256, fileList) != NULL && trim(filename))
   {
-    strcat(filePath, filename);
+    strcpy(filePath+pathlen, filename); // strcat skipped to avoid multiple filename concat on filePath
     sscanf(filename, "_%255[^_]_%255[^.]", id, timestamp);
 #ifdef DEBUG_ON
     dlog_print(DLOG_INFO, LOG_TAG, "Uploading %s with id: %s timestamp:%s\n", filePath, id, timestamp);
